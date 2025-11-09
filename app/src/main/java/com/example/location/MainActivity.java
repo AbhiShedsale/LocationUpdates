@@ -8,6 +8,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PersistableBundle;
 import android.util.Log;
 import androidx.activity.EdgeToEdge;
@@ -117,41 +119,51 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(@NonNull Location location) {
         Log.i(TAG+"_called","onLocationChanged");
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run(){
+                int tempLatitude = (int) location.getLatitude();
+                int tempLongitude = (int) location.getLongitude();
 
-        int tempLatitude = (int) location.getLatitude();
-        int tempLongitude = (int) location.getLongitude();
+                int previousLatitude = (int) mLatitude;
+                int previousLongitude = (int) mLongitude;
 
-        int previousLatitude = (int) mLatitude;
-        int previousLongitude = (int) mLongitude;
+                Log.i(TAG+"_current_data",tempLatitude+", "+tempLongitude+" ..kk");
 
-        Log.i(TAG+"_current_data",tempLatitude+", "+tempLongitude+" ..kk");
+                if(tempLatitude != previousLatitude && tempLongitude != previousLongitude){
 
-        if(tempLatitude != previousLatitude && tempLongitude != previousLongitude){
+                    Log.i(TAG+"_status","True");
 
-            Log.i(TAG+"_status","True");
+                    mLatitude = location.getLatitude();
+                    mLongitude = location.getLongitude();
 
-            mLatitude = location.getLatitude();
-            mLongitude = location.getLongitude();
+                    try{
+                        if(mGoogleMap!=null){
+                            mGoogleMap.setMyLocationEnabled(true);
+                        }
+                        LatLng currentLocation = new LatLng(mLatitude,mLongitude);
+                        MarkerOptions markerOptions = new MarkerOptions();
+                        markerOptions.position(currentLocation);
+                        markerOptions.title("Current Location");
 
-            try{
-                mGoogleMap.setMyLocationEnabled(true);
-                LatLng currentLocation = new LatLng(mLatitude,mLongitude);
-                MarkerOptions markerOptions = new MarkerOptions();
-                markerOptions.position(currentLocation);
-                markerOptions.title("Current Location");
-                mGoogleMap.addMarker(markerOptions);
-                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation,15));
-            }catch(SecurityException e1){
-                Log.i(TAG+"_onMapReady_1",e1.getMessage()+" ..kk");
-            }catch(Exception e2){
-                Log.i(TAG+"_onMapReady_1",e2.getMessage()+" ..kk");
+                        if(mGoogleMap!=null){
+                            mGoogleMap.addMarker(markerOptions);
+                            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation,15));
+                        }
+                    }catch(SecurityException e1){
+                        Log.i(TAG+"_onMapReady_1",e1.getMessage()+" ..kk");
+                    }catch(Exception e2){
+                        Log.i(TAG+"_onMapReady_1",e2.getMessage()+" ..kk");
+                    }
+
+                    saveDataForReference();
+                    // findNearbyPlaces();
+                }else{
+                    Log.i(TAG+"_status","False");
+                }
             }
-
-            saveDataForReference();
-            findNearbyPlaces();
-        }else{
-            Log.i(TAG+"_status","False");
-        }
+        },7000);
     }
 
     private void manageLocationPermissions(){
@@ -225,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onSaveInstanceState(outState, outPersistentState);
     }
 
+    /*
     private void findNearbyPlaces(){
         Log.i(TAG+"_called","findNearbyPlaces()");
         List<Place.Field> placeFields = Arrays.asList(Place.Field.ID, Place.Field.DISPLAY_NAME);
@@ -254,6 +267,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.e(TAG+"_nearFailed",response.toString()+" ..kk");
                 });
     }
+    */
 
     private void saveDataForReference(){
         SharedPreferences sharedPreferences = getSharedPreferences("LocationDetails",Context.MODE_PRIVATE);
