@@ -2,6 +2,7 @@ package com.example.location;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -146,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.i(TAG+"_onMapReady_1",e2.getMessage()+" ..kk");
             }
 
+            saveDataForReference();
             findNearbyPlaces();
         }else{
             Log.i(TAG+"_status","False");
@@ -251,5 +253,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addOnFailureListener(response -> {
                     Log.e(TAG+"_nearFailed",response.toString()+" ..kk");
                 });
+    }
+
+    private void saveDataForReference(){
+        SharedPreferences sharedPreferences = getSharedPreferences("LocationDetails",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(String.valueOf(System.currentTimeMillis()),mLatitude+","+mLongitude);
+        editor.apply();
     }
 }
